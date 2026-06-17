@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bible Reader</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="app">
+
+        <div class="overlay hidden" id="overlayMenu">
+
+            <div id="overlayHeader">
+              <button id="menuClose">(X) --- Close Menu</button>
+            </div>
+            <select id="bookSelect"></select>
+            <select id="chapterSelect"></select>
+            <select id="translationSelect"></select>
+            <button id="themeBtn">Dark Mode</button>
+            <div id="sliderContainer">
+                <p id="fontText">Font Size </p>
+                <input
+                    type="range"
+                    id="fontSizing"
+                    min="0"
+                    max="2"
+                    step="1"
+                    value="1"
+                  />
+
+                </div>
+        </div>
+
+      <header class="topbar">
+
+        <div class="selectors hidden" id="selectorsHeader">
+        </div>
+
+
+
+        <div class="chapter-header" id="chapterHeader">
+          <button id="backBtn" aria-label="Previous Chapter">
+            <i data-lucide="chevron-left"></i>
+          </button>
+
+          <button id="headerBtn"></button>
+
+          <button id="nextBtn" aria-label="Next Chapter">
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </div>
+
+      </header>
+
+      <main class="reader">
+
+        <article id="chapter">   
+          <div class="verses" id="verses">
+            </div>
+        </article>
+
+
+      </main>
+
+    </div>
+  <script src="script.js" defer></script>  
+  <script>lucide.createIcons();</script>
+ </body>
+</html>
