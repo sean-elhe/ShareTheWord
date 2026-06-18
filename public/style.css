@@ -295,10 +295,24 @@ button:disabled {
 
 /* Hover */
 
-.verse:hover {
-    background: #f9fafb;
-    border-radius: 8px;
+.verse {
+    padding: 6px 0;
     cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.verse.selected {
+    background-color: #fff3b0;
+    border-radius: 6px;
+}
+
+.verse.dim {
+    opacity: 0.45;
+}
+
+.verse.focused {
+    background-color: #fff3b0; /* soft yellow highlight */
+    border-radius: 6px;
 }
 
 /* Mobile */

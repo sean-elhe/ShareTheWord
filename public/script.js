@@ -2,11 +2,16 @@ const state = {
     bookId: 1,
     chapterId: 1,
     translationId: "ESV",
+    verseId: 1,
     chapters: [],
+    verses: [],
     theme: "Light",
     fontSizes: ["1.0rem", "1.5rem", "2.0rem"],
-    fontSize: 1
+    fontSize: 1,
 };
+
+let selectedVerse = null;
+
 
 const bookSelect = document.getElementById("bookSelect");
 const chapterSelect = document.getElementById("chapterSelect");
@@ -20,6 +25,7 @@ const overlayMenu = document.getElementById("overlayMenu");
 const themeBtn = document.getElementById("themeBtn");
 const fontSlider = document.getElementById("fontSizing");
 const menuClose = document.getElementById("menuClose");
+const verseSelect = document.getElementById("verseSelect")
 
 // cache
 const chapterCache = {};
@@ -29,6 +35,11 @@ const key =
 async function preloadChapters() {
     const res = await fetch("/chapters");
     state.chapters = await res.json();
+}
+
+async function preloadVerses(){
+    const res = await fetch("/verses");
+    state.verses = await res.json();
 }
 
 async function loadBooks() {
@@ -63,6 +74,19 @@ async function loadTranslations(){
     })
 }
 
+async function loadChapter() {
+    renderVerseOptions(
+        state.bookId,
+        state.chapterId
+    );
+
+    await renderVerses();
+
+    selectVerse(state.verseId);
+
+    saveState();
+}
+
 function renderChapterOptions(bookId) {
     chapterSelect.innerHTML = "";
 
@@ -78,23 +102,94 @@ function renderChapterOptions(bookId) {
     });
 }
 
-async function renderVerses() {
+function renderVerseOptions(bookId, chapterId) {
+    verseSelect.innerHTML = "";
+
+    const verses = state.verses.filter(
+        v => v.book_id == bookId &&
+         v.chapter == chapterId
+    );
+
+    verses.forEach(v => {
+        const option = document.createElement("option");
+        option.value = v.verse;
+        option.textContent = v.verse;
+        verseSelect.appendChild(option);
+    })
+
+}
+
+async function renderVerses(jumpVerse = null) {
     const res = await fetch(
-        `/book/${state.bookId}/chapter/
-        ${state.chapterId}/${state.translationId}`
+        `/book/${state.bookId}/chapter/${state.chapterId}/${state.translationId}`
     );
 
     const data = await res.json();
 
     if (!data.length) return;
 
-    document.getElementById("headerBtn").textContent =
+    headerBtn.textContent =
         `${data[0].book} ${data[0].chapter}`;
 
-    document.getElementById("verses").innerHTML =
-        data
-            .map(v => `${v.verse}. ${v.text}`)
-            .join("<br>");
+    verses.innerHTML =
+        data.map(v => `
+            <p class="verse" id="verse-${v.verse}">
+                <sup>${v.verse}</sup> ${v.text}
+            </p>
+        `).join("");
+
+    if (jumpVerse) {
+        jumpToVerse(jumpVerse);
+    }
+}
+
+function jumpToVerse(verseNumber) {
+    document.querySelectorAll(".verse.focused")
+        .forEach(el => el.classList.remove("focused"));
+
+    const verse = document.getElementById(`verse-${verseNumber}`);
+
+    if (verse) {
+        verse.classList.add("focused");
+
+        verse.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+}
+
+function selectVerse(verseNumber) {
+    clearSelection();
+
+    const verse =
+        document.getElementById(`verse-${verseNumber}`);
+
+    if (!verse) return;
+
+    selectedVerse = verseNumber;
+
+    verse.classList.add("selected");
+
+    document.querySelectorAll(".verse")
+        .forEach(el => {
+            if (el !== verse) {
+                el.classList.add("dim");
+            }
+        });
+
+    verse.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
+
+function clearSelection(){
+    selectedVerse = null;
+    document.querySelectorAll(".verse.selected")
+        .forEach(el => el.classList.remove("selected"));
+    document.querySelectorAll(".verse.dim")
+        .forEach(el => el.classList.remove("dim"));
 }
 
 function saveState(){
@@ -140,22 +235,42 @@ function applyFontSize() {
     fontSlider.value = state.fontSize;
 }
 
+function handleVerseClick(e) {
+    const verse = e.target.closest(".verse");
+
+    if (!verse) return;
+
+    const verseNumber =
+        Number(verse.id.replace("verse-", ""));
+
+    state.verseId = verseNumber;
+
+    selectVerse(verseNumber);
+
+    verseSelect.value = verseNumber;
+
+    saveState();
+}
+
 bookSelect.addEventListener("change", async (e) => {
     state.bookId = Number(e.target.value);
     state.chapterId = 1;
     saveState();
 
     renderChapterOptions(state.bookId);
+    renderVerseOptions(state.bookId, state.chapterId);
+
     chapterSelect.value = 1;
 
     await renderVerses();
+    selectVerse(10);
 });
 
 chapterSelect.addEventListener("change", async (e) => {
     state.chapterId = Number(e.target.value);
-    saveState();
+    state.verseId = 1;
 
-    await renderVerses();
+    await loadChapter();
 });
 
 translationSelect.addEventListener("change", async (e) => {
@@ -167,10 +282,9 @@ translationSelect.addEventListener("change", async (e) => {
 
 nextBtn.addEventListener("click", async () => {
     state.chapterId++;
-    chapterSelect.value = state.chapterId;
-    saveState();
+    state.verseId = 1;
 
-    await renderVerses();
+    await loadChapter();
 });
 
 backBtn.addEventListener("click", async () => {
@@ -212,6 +326,16 @@ fontSlider.addEventListener("input", () => {
     saveState();
 });
 
+verseSelect.addEventListener("change", () => {
+    const verseNumber = Number(verseSelect.value);
+
+    state.verseId = verseNumber;
+
+    selectVerse(verseNumber);
+
+    saveState();
+});
+
 async function init() {
     loadState();
     applyFontSize();
@@ -219,6 +343,7 @@ async function init() {
     await Promise.all([
         loadBooks(),
         preloadChapters(),
+        preloadVerses(),
         loadTranslations()
     ]);
 
@@ -227,6 +352,12 @@ async function init() {
 
     renderChapterOptions(state.bookId);
     chapterSelect.value = state.chapterId;
+
+    document.getElementById("verses")
+        .addEventListener("click", handleVerseClick);
+
+    renderVerseOptions(state.bookId, state.chapterId);
+    verseSelect.value = state.verseId;
 
     await renderVerses();
 }
