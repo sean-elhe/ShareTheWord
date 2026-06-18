@@ -160,6 +160,11 @@ function jumpToVerse(verseNumber) {
 }
 
 function selectVerse(verseNumber) {
+    if (selectedVerse === verseNumber) {
+        clearSelection();
+        return;
+    }
+    
     clearSelection();
 
     const verse =
