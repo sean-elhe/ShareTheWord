@@ -11,16 +11,25 @@
 <body>
     <div class="app">
 
+        <div class="overlayLink hidden" id="overlayLink">
+          <h1 id="linkHeader">
+            Session started!</h1>
+          <button id="copyBtn">
+            Click to copy link ~
+          </button>
+        </div>
+
         <div class="overlay hidden" id="overlayMenu">
 
             <div id="overlayHeader">
-              <button id="menuClose">(X) --- Close Menu</button>
+              <button id="menuClose">Close Menu</button>
             </div>
+            <select id="translationSelect"></select>
             <select id="bookSelect"></select>
             <select id="chapterSelect"></select>
             <select id="verseSelect"></select>
-            <select id="translationSelect"></select>
             <button id="themeBtn">Dark Mode</button>
+            <button id="sessionBtn">Start session</button>
             <div id="sliderContainer">
                 <p id="fontText">Font Size </p>
                 <input
@@ -63,10 +72,10 @@
             </div>
         </article>
 
-
       </main>
 
     </div>
+  <script src="/socket.io/socket.io.js"></script>
   <script src="script.js" defer></script>  
   <script>lucide.createIcons();</script>
  </body>

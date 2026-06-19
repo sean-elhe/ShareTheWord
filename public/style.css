@@ -100,27 +100,6 @@ select {
     display: none !important;
 }
 
-/* .overlay {
-    height: 50vh;
-    padding: 24px 24px 24px 24px;
-    position: fixed;
-    background-color: var(--surface);
-    border-radius: 24px;
-    box-shadow:
-        0 10px 30px rgba(0,0,0,.05);    z-index: 999;
-    top: 200px;
-    left: 25%;
-    overflow-x: hidden;
-    border: 1px solid;
-    border-radius: 18px;
-    transition: width 0.4s ease-in-out;
-    width: 50%;
-    display: flex;
-    flex-direction: column;
-
-    
-} */
-
 .overlay {
     position: fixed;
     top: 50%;
@@ -135,7 +114,7 @@ select {
     grid-template-columns: repeat(2, 1fr);
 
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 12px solid var(--background);
     border-radius: 20px;
 
     box-shadow:
@@ -148,6 +127,48 @@ select {
     gap: 16px;
     
     opacity: 0;
+    transform: translate(-50%, -48%) scale(0.98);
+    transition: 
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+#linkHeader {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#copyBtn {
+    height: 30px;
+    border-radius: 999px;
+}
+
+.overlayLink {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: min(720px, 92vw);
+    max-height: 85vh;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+
+    background: var(--surface);
+    border: 12px solid var(--background);
+    border-radius: 20px;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.06);
+
+    z-index: 999;
+
+    overflow: hidden;
+    gap: 16px;
+    
+    opacity: 1;
     transform: translate(-50%, -48%) scale(0.98);
     transition: 
         opacity 0.2s ease,
@@ -187,7 +208,18 @@ select {
     padding-right: 6px;
 }
 
+
+
 #themeBtn {
+    padding: .6rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: .95rem;
+    color: var(--text);
+}
+
+#sessionBtn {
     padding: .6rem 1rem;
     border-radius: 12px;
     border: 1px solid var(--border);
@@ -317,17 +349,6 @@ button:disabled {
 
 /* Mobile */
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #111827;
-        --surface: #1f2937;
-        --text: #f9fafb;
-        --muted: #9ca3af;
-        --accent: #3b82f6;
-        --border: #374151;
-    }
-}
-
 @media (max-width: 768px) {
 
     .topbar {
@@ -339,11 +360,4 @@ button:disabled {
         padding: 1.5rem;
     }
 
-    .verse {
-        font-size: 1.1rem;
-    }
-
-    .chapter-header h1 {
-        font-size: 2rem;
-    }
 }

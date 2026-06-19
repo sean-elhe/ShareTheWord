@@ -1,12 +1,98 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const crypto = require("crypto");
 const path = require("path");
 const db = require("./db");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+const sessions = {};
+
+io.on("connection", socket => {
+
+    console.log("Connected:", socket.id);
+
+    socket.on("disconnect", () => {
+        console.log("Disconnected:", socket.id);
+
+        for (const session of Object.values(sessions)) {
+
+            if (session.hostId === socket.id) {
+                session.hostId = null;
+            }
+        }
+    });
+
+    socket.on("join-session", sessionId => {
+        const session = sessions[sessionId];
+
+        if (!session) {
+            return;
+        }
+
+        socket.join(sessionId);
+
+
+        if (!session.hostId) {
+            session.hostId = socket.id;
+            console.log("Host assigned:", socket.id)
+        }
+
+        socket.emit("session-state", {
+            sessionId,
+            ...session,
+            isHost: session.hostId === socket.id
+        });
+    });
+
+    socket.on("navigate", data => {
+
+        const session = sessions[data.sessionId];
+
+        if (!session) {
+            return;
+        }
+
+        if (socket.id !== session.hostId) {
+            return;
+        }
+
+        session.bookId = data.bookId;
+        session.chapterId = data.chapterId;
+        session.verseId = data.verseId;
+        session.translationId = data.translationId;
+        session.lastActivity = Date.now();
+
+        io.to(data.sessionId).emit("navigate", {
+            bookId: session.bookId,
+            chapterId: session.chapterId,
+            verseId: session.verseId,
+            translationId: session.translationId
+        });
+    });
+});
+
 app.use(express.json());
 
-// Serve HTML files from /public
 app.use(express.static(path.join(__dirname, "public")));
+
+app.post("/session", (req, res) => {
+    const sessionId = crypto.randomUUID();
+
+    sessions[sessionId] = {
+        bookId: 1,
+        chapterId: 1,
+        verseId: null,
+        translationId: "ESV",
+        hostId: null,
+        lastActivity: Date.now()
+    };
+
+    res.json({ sessionId });
+})
 
 app.get("/books", (req, res) => {
     db.all(
@@ -76,7 +162,7 @@ app.get("/chapters/:book_id", (req, res) => {
         `SELECT DISTINCT chapter
         FROM verses
         WHERE book_id = ?
-        ORDER BY chapter`
+        ORDER BY chapter`,
     [bookId],
     (err, rows) => {
         if (err) {
@@ -118,6 +204,6 @@ app.use((req, res) => {
   res.status(404).send("Not found");
 });
 
-app.listen(3001, () => {
+server.listen(3001, () => {
   console.log("Server running on http://localhost:3001");
 });

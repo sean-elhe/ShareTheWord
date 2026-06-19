@@ -1,3 +1,20 @@
+const params = new URLSearchParams(window.location.search);
+const sessionIdFromUrl = params.get("session");
+
+const socket = io();
+
+socket.on("connect", () => {
+
+    if (sessionIdFromUrl) {
+
+        state.sessionId = sessionIdFromUrl;
+
+        socket.emit("join-session", sessionIdFromUrl);
+
+        console.log("Joined session from URL:", sessionIdFromUrl);
+    }
+});
+
 const state = {
     bookId: 1,
     chapterId: 1,
@@ -11,6 +28,7 @@ const state = {
 };
 
 let selectedVerse = null;
+let inviteLink = null;
 
 
 const bookSelect = document.getElementById("bookSelect");
@@ -26,6 +44,11 @@ const themeBtn = document.getElementById("themeBtn");
 const fontSlider = document.getElementById("fontSizing");
 const menuClose = document.getElementById("menuClose");
 const verseSelect = document.getElementById("verseSelect")
+const sessionBtn = document.getElementById("sessionBtn");
+const overlayLink = document.getElementById("overlayLink");
+const copyBtn = document.getElementById("copyBtn");
+const linkHeader = document.getElementById("linkHeader");
+
 
 // cache
 const chapterCache = {};
@@ -257,6 +280,36 @@ function handleVerseClick(e) {
     saveState();
 }
 
+function syncNavigation() {
+
+    if (!state.sessionId) {
+        console.warn("No sessionId — cannot sync");
+        return;
+    }
+
+    if (!state.isHost) return;
+
+    socket.emit("navigate", {
+        sessionId: state.sessionId,
+        bookId: state.bookId,
+        chapterId: state.chapterId,
+        verseId: state.verseId,
+        translationId: state.translationId
+    });
+}
+
+function applyState() {
+
+    renderChapterOptions(state.bookId);
+    renderVerseOptions(state.bookId, state.chapterId);
+
+    chapterSelect.value = state.chapterId;
+    bookSelect.value = state.bookId;
+    translationSelect.value = state.translationId;
+
+    loadChapter(); // already async internally
+}
+
 bookSelect.addEventListener("change", async (e) => {
     state.bookId = Number(e.target.value);
     state.chapterId = 1;
@@ -268,7 +321,7 @@ bookSelect.addEventListener("change", async (e) => {
     chapterSelect.value = 1;
 
     await renderVerses();
-    selectVerse(10);
+    syncNavigation();
 });
 
 chapterSelect.addEventListener("change", async (e) => {
@@ -341,6 +394,52 @@ verseSelect.addEventListener("change", () => {
     saveState();
 });
 
+sessionBtn.addEventListener("click", async () => {
+
+    if (!state.sessionId) {
+        console.log("Started session")
+
+        const res = await fetch("/session", {
+            method: "POST"
+        });
+
+        const { sessionId } = await res.json();
+
+        state.sessionId = sessionId;
+
+        socket.emit("join-session", sessionId);
+
+        inviteLink = `${window.location.origin}?session=${sessionId}`;
+
+        console.log(inviteLink)
+
+        overlayMenu.classList.add("hidden");
+        overlayLink.classList.remove("hidden");
+        
+        sessionBtn.textContent = "Share link"
+    } else if (state.isHost === true) {
+        overlayMenu.classList.add("hidden");
+        overlayLink.classList.remove("hidden"); 
+        linkHeader.textContent = "Session ongoing!"
+        
+    } else if (state.sessionId === true && !state.isHost) {
+        linkHeader.textContent = "Click to disconnect"
+    }
+
+});
+
+overlayLink.addEventListener("click", async () => {
+
+    await navigator.clipboard.writeText(inviteLink);
+
+    if (copyBtn.textContent === "Copied! Click to close~") {
+        overlayLink.classList.add("hidden");
+        copyBtn.textContent = "Click to copy link ~";
+    } else {
+        copyBtn.textContent = "Copied! Click to close~";
+    }
+});
+
 async function init() {
     loadState();
     applyFontSize();
@@ -368,3 +467,29 @@ async function init() {
 }
 
 init();
+
+socket.on("navigate", (data) => {
+
+    console.log("🔥 RECEIVED NAVIGATE:", data);
+
+    state.bookId = data.bookId;
+    state.chapterId = data.chapterId;
+    state.verseId = data.verseId;
+    state.translationId = data.translationId;
+
+    applyState(); // NO await here
+});
+
+socket.on("session-state", data => {
+
+    state.sessionId = data.sessionId; // 🔥 CRITICAL FIX
+
+    state.bookId = data.bookId;
+    state.chapterId = data.chapterId;
+    state.verseId = data.verseId;
+    state.translationId = data.translationId;
+
+    state.isHost = data.isHost;
+
+    applyState();
+});
