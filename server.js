@@ -83,10 +83,10 @@ app.post("/session", (req, res) => {
     const sessionId = crypto.randomUUID();
 
     sessions[sessionId] = {
-        bookId: 1,
-        chapterId: 1,
-        verseId: null,
-        translationId: "ESV",
+        bookId: req.body.bookId ?? 1,
+        chapterId: req.body.chapterId ?? 1,
+        verseId: req.body.verseId ?? 1,
+        translationId: req.body.translationId ?? "ESV",
         hostId: null,
         lastActivity: Date.now()
     };

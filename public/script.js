@@ -104,8 +104,7 @@ async function loadChapter() {
     );
 
     await renderVerses();
-
-    selectVerse(state.verseId);
+    clearSelection();
 
     saveState();
 }
@@ -187,7 +186,6 @@ function selectVerse(verseNumber) {
         clearSelection();
         return;
     }
-    
     clearSelection();
 
     const verse =
@@ -329,6 +327,7 @@ chapterSelect.addEventListener("change", async (e) => {
     state.verseId = 1;
 
     await loadChapter();
+    syncNavigation();
 });
 
 translationSelect.addEventListener("change", async (e) => {
@@ -336,6 +335,7 @@ translationSelect.addEventListener("change", async (e) => {
     saveState();
 
     await renderVerses();
+    syncNavigation();
 });
 
 nextBtn.addEventListener("click", async () => {
@@ -400,7 +400,16 @@ sessionBtn.addEventListener("click", async () => {
         console.log("Started session")
 
         const res = await fetch("/session", {
-            method: "POST"
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                bookId: state.bookId,
+                chapterId: state.chapterId,
+                verseId: state.verseId,
+                translationId: state.translationId
+            })
         });
 
         const { sessionId } = await res.json();
