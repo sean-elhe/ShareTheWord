@@ -29,6 +29,8 @@ const state = {
 
 let selectedVerse = null;
 let inviteLink = null;
+let isRemoteScroll = false;
+let isRemoteUpdate = false;
 
 
 const bookSelect = document.getElementById("bookSelect");
@@ -104,8 +106,6 @@ async function loadChapter() {
     );
 
     await renderVerses();
-    clearSelection();
-
     saveState();
 }
 
@@ -166,34 +166,38 @@ async function renderVerses(jumpVerse = null) {
 }
 
 function jumpToVerse(verseNumber) {
-    document.querySelectorAll(".verse.focused")
-        .forEach(el => el.classList.remove("focused"));
+    isRemoteScroll - true;
 
     const verse = document.getElementById(`verse-${verseNumber}`);
-
-    if (verse) {
-        verse.classList.add("focused");
-
-        verse.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-    }
-}
-
-function selectVerse(verseNumber) {
-    if (selectedVerse === verseNumber) {
-        clearSelection();
-        return;
-    }
-    clearSelection();
-
-    const verse =
-        document.getElementById(`verse-${verseNumber}`);
-
     if (!verse) return;
 
+    verse.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+    setTimeout(() => {
+        isRemoteScroll = false;
+    }, 300);
+}
+
+function selectVerse(verseNumber, fromRemote = false) {
+
+    if (!fromRemote && selectedVerse === verseNumber) {
+        clearSelection();
+        selectedVerse = null;
+        state.verseId = null;
+        syncNavigation();
+        return;
+    }
+
+    clearSelection();
+
     selectedVerse = verseNumber;
+    state.verseId = verseNumber;
+
+    const verse = document.getElementById(`verse-${verseNumber}`);
+    if (!verse) return;
 
     verse.classList.add("selected");
 
@@ -203,11 +207,22 @@ function selectVerse(verseNumber) {
                 el.classList.add("dim");
             }
         });
+    
+    // if (scroll) {
+    //     jumpToVerse(verseNumber);
+    // }
 
-    verse.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
+    jumpToVerse(verseNumber);
+
+    if (state.isHost) {
+        syncNavigation();
+    }
+
+    if (!fromRemote) {
+        syncNavigation();
+    }
+
+    console.log("Selecting verse:", verseNumber, document.getElementById(`verse-${verseNumber}`));
 }
 
 function clearSelection(){
@@ -216,6 +231,7 @@ function clearSelection(){
         .forEach(el => el.classList.remove("selected"));
     document.querySelectorAll(".verse.dim")
         .forEach(el => el.classList.remove("dim"));
+    console.log("CLEARING SELECTION");
 }
 
 function saveState(){
@@ -263,7 +279,6 @@ function applyFontSize() {
 
 function handleVerseClick(e) {
     const verse = e.target.closest(".verse");
-
     if (!verse) return;
 
     const verseNumber =
@@ -272,41 +287,29 @@ function handleVerseClick(e) {
     state.verseId = verseNumber;
 
     selectVerse(verseNumber);
-
-    verseSelect.value = verseNumber;
-
-    saveState();
+    jumpToVerse(verseNumber);
+    syncNavigation();
 }
 
 function syncNavigation() {
-
-    if (!state.sessionId) {
-        console.warn("No sessionId — cannot sync");
-        return;
-    }
-
+    if (!state.sessionId || !state.isHost) return;
+    if (!state.verseId) return; // 🔥 CRITICAL FIX
     if (!state.isHost) return;
 
     socket.emit("navigate", {
         sessionId: state.sessionId,
         bookId: state.bookId,
         chapterId: state.chapterId,
-        verseId: state.verseId,
-        translationId: state.translationId
+        verseId: state.verseId ?? null,
+        translationId: state.translationId,
+
+        source: socket.id   // 🔥 ADD THIS
     });
+
+    console.log("isHost:", state.isHost);
 }
 
-function applyState() {
 
-    renderChapterOptions(state.bookId);
-    renderVerseOptions(state.bookId, state.chapterId);
-
-    chapterSelect.value = state.chapterId;
-    bookSelect.value = state.bookId;
-    translationSelect.value = state.translationId;
-
-    loadChapter(); // already async internally
-}
 
 bookSelect.addEventListener("change", async (e) => {
     state.bookId = Number(e.target.value);
@@ -324,9 +327,11 @@ bookSelect.addEventListener("change", async (e) => {
 
 chapterSelect.addEventListener("change", async (e) => {
     state.chapterId = Number(e.target.value);
-    state.verseId = 1;
+    state.verseId = null;
 
     await loadChapter();
+
+    clearSelection();
     syncNavigation();
 });
 
@@ -386,11 +391,12 @@ fontSlider.addEventListener("input", () => {
 
 verseSelect.addEventListener("change", () => {
     const verseNumber = Number(verseSelect.value);
-
     state.verseId = verseNumber;
-
     selectVerse(verseNumber);
-
+    
+    if (state.isHost) {
+        syncNavigation();
+    }
     saveState();
 });
 
@@ -475,30 +481,80 @@ async function init() {
     await renderVerses();
 }
 
-init();
+
+function applyState() {
+
+    renderChapterOptions(state.bookId);
+    renderVerseOptions(state.bookId, state.chapterId);
+
+    chapterSelect.value = state.chapterId;
+    bookSelect.value = state.bookId;
+    translationSelect.value = state.translationId;
+
+    loadChapter();
+
+}
 
 socket.on("navigate", (data) => {
 
-    console.log("🔥 RECEIVED NAVIGATE:", data);
+    // 🚫 ignore echo back to sender
+    if (data.source === socket.id) return;
+
+    console.log("NAVIGATE RECEIVED:", data);
+
+    const chapterChanged =
+        data.bookId !== state.bookId ||
+        data.chapterId !== state.chapterId ||
+        data.translationId !== state.translationId;
 
     state.bookId = data.bookId;
     state.chapterId = data.chapterId;
-    state.verseId = data.verseId;
     state.translationId = data.translationId;
+    state.verseId = data.verseId;
 
-    applyState(); // NO await here
-});
+    // const applyVerse = () => {
+    //     if (state.verseId) {
+    //         selectVerse(state.verseId);
+    //         jumpToVerse(state.verseId);
+    //     } else {
+    //         clearSelection();
+    //     }
+    // }
+
+    if (chapterChanged) {
+        renderChapterOptions(state.bookId);
+        renderVerseOptions(state.bookId, state.chapterId);
+
+        bookSelect.value = state.bookId;
+        chapterSelect.value = state.chapterId;
+        translationSelect.value = state.translationId;
+
+        loadChapter().then(() => {
+            if (state.verseId) {
+                selectVerse(state.verseId, true); // 🔥 IMPORTANT
+            }
+        });
+
+        return;
+    }
+
+    if (state.verseId) {
+        selectVerse(state.verseId, true); // 🔥 IMPORTANT
+    } else {
+        clearSelection();
+    }});
 
 socket.on("session-state", data => {
 
-    state.sessionId = data.sessionId; // 🔥 CRITICAL FIX
+    state.sessionId = data.sessionId;
+    state.isHost = data.isHost;
 
     state.bookId = data.bookId;
     state.chapterId = data.chapterId;
     state.verseId = data.verseId;
     state.translationId = data.translationId;
 
-    state.isHost = data.isHost;
-
-    applyState();
+    applyState({ preserveVerse: false });
 });
+
+init();

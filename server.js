@@ -49,29 +49,41 @@ io.on("connection", socket => {
     });
 
     socket.on("navigate", data => {
-
         const session = sessions[data.sessionId];
+        if (!session) return;
 
-        if (!session) {
-            return;
-        }
-
-        if (socket.id !== session.hostId) {
-            return;
-        }
-
+        // update full state
         session.bookId = data.bookId;
         session.chapterId = data.chapterId;
-        session.verseId = data.verseId;
         session.translationId = data.translationId;
-        session.lastActivity = Date.now();
+        session.verseId = data.verseId;
 
         io.to(data.sessionId).emit("navigate", {
-            bookId: session.bookId,
-            chapterId: session.chapterId,
-            verseId: session.verseId,
-            translationId: session.translationId
-        });
+            ...session,
+            source: data.source
+        });        
+        // const session = sessions[data.sessionId];
+
+        // if (!session) {
+        //     return;
+        // }
+
+        // if (socket.id !== session.hostId) {
+        //     return;
+        // }
+
+        // session.bookId = data.bookId;
+        // session.chapterId = data.chapterId;
+        // session.verseId = data.verseId;
+        // session.translationId = data.translationId;
+        // session.lastActivity = Date.now();
+
+        // io.to(data.sessionId).emit("navigate", {
+        //     bookId: session.bookId,
+        //     chapterId: session.chapterId,
+        //     verseId: session.verseId,
+        //     translationId: session.translationId
+        // });
     });
 });
 
