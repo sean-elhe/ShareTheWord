@@ -1,4 +1,4 @@
-import { fontSlider, themeBtn } from "./dom.js";
+import { fontSlider, sessionBtn, themeBtn } from "./dom.js";
 import { selectVerse } from "./verse.js";
 
 export const state = {
@@ -9,11 +9,13 @@ export const state = {
     chapters: [],
     verses: [],
     theme: "Light",
-    fontSizes: ["1.0rem", "1.5rem", "2.0rem"],
+    fontSizes: ["1.0rem", "1.2rem", "1.4rem", "1.6rem", "1.8rem"],
     fontSize: 1,
     inviteLink: null,
     isReady: false,
-    selectedVerse: null
+    selectedVerse: null,
+    isHost: false,
+    isGuest: false
 };
 export const uiFlags = {
     isRemoteScroll: false
@@ -62,4 +64,21 @@ export function applyFontSize() {
     );
 
     fontSlider.value = state.fontSize;
+}
+
+export function applySessionUI() {
+    if (state.isHost === false && state.isGuest === false) {
+        console.log("local mode")
+        sessionBtn.textContent = "Start session"
+    }
+
+    if (state.isHost) {
+        console.log("host mode")
+        // banner.textContent = "You are hosting this session!";
+        sessionBtn.textContent = "Exit session"
+    } else if (state.isGuest) {
+        console.log("guest mode")
+        // banner.textContent = "You are following the host!";
+        sessionBtn.textContent = "Exit session"
+    }
 }

@@ -1,4 +1,4 @@
-import { state } from "./state.js";
+import { applySessionUI, state } from "./state.js";
 import { setNavigation } from "./navigation.js";
 import { selectVerse } from "./verse.js";
 
@@ -17,6 +17,7 @@ socket.on("connect", () => {
 socket.on("session-state", async (data) => {
     state.sessionId = data.sessionId;
     state.isHost = data.isHost;
+    state.isGuest = state.sessionId && !state.isHost;
 
     // 1. restore state
     state.bookId = data.bookId;
@@ -31,6 +32,8 @@ socket.on("session-state", async (data) => {
         translationId: state.translationId,
         verseId: state.verseId
     }, "remote");
+
+    applySessionUI();
 });
 
 socket.on("navigate", (data) => {

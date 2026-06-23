@@ -10,6 +10,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const sessions = {};
+const socketSessionMap = new Map();
 
 io.on("connection", socket => {
 
@@ -18,30 +19,52 @@ io.on("connection", socket => {
     socket.on("disconnect", () => {
         console.log("Disconnected:", socket.id);
 
-        for (const session of Object.values(sessions)) {
+        const sessionId = socketSessionMap.get(socket.id);
+        if (!sessionId) return;
 
-            if (session.hostId === socket.id) {
-                session.hostId = null;
-            }
+        const session = sessions[sessionId];
+        if (!session) return;
+
+        if (session.hostId === socket.id) {
+            session.hostId = null;
         }
+
+        socketSessionMap.delete(socket.id);
+
+        if (session.hostId === socket.id) {
+            session.hostId = null;
+
+            const next = session.sockets.values().next().value;
+            if (next) session.hostId = next;
+        }
+
+        socketSessionMap.delete(socket.id);
+
+       cleanupSessionIfEmpty(sessionId);
+    });
+
+    socket.on("leave-session", sessionId => {
+        const session = sessions[sessionId];
+        if (!session) return;
+
+        session.sockets.delete(socket.id);
     });
 
     socket.on("join-session", sessionId => {
         const session = sessions[sessionId];
-
-        if (!session) {
-            return;
-        }
+        if (!session) return;
 
         socket.join(sessionId);
 
+        socketSessionMap.set(socket.id, sessionId)
+        session.sockets.add(socket.id);
 
         if (!session.hostId) {
             session.hostId = socket.id;
-            console.log("Host assigned:", socket.id)
         }
 
-        socket.emit("session-state", {
+        socket.emit(
+            "session-state", {
             sessionId,
             ...session,
             isHost: session.hostId === socket.id
@@ -81,7 +104,9 @@ app.post("/session", (req, res) => {
         verseId: req.body.verseId ?? 1,
         translationId: req.body.translationId ?? "ESV",
         hostId: null,
-        lastActivity: Date.now()
+        lastActivity: Date.now(),
+
+        sockets: new Set ()
     };
 
     res.json({ sessionId });
@@ -191,6 +216,16 @@ app.get("/book/:book_id/chapter/:chapter/:translation", (req, res) => {
     }
   );
 });
+
+function cleanupSessionIfEmpty(sessionId) {
+    const session = sessions[sessionId];
+    if (!session) return;
+
+    if (session.sockets.size === 0) {
+        delete sessions[sessionId];
+        console.log("Deleted empty session:", sessionId);
+    }
+}
 
 // 404 fallback
 app.use((req, res) => {

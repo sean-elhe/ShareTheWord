@@ -23,3 +23,7 @@ export const linkHeader = document.getElementById("linkHeader");
 
 export const verses = document.getElementById("verses");
 export const overlay = document.getElementById("overlay");
+
+export const leaveModal = document.getElementById("leaveModal");
+export const confirmLeaveBtn = document.getElementById("confirmLeaveBtn");
+export const cancelLeaveBtn = document.getElementById("cancelLeaveBtn");

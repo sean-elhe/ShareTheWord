@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Bible Reader</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=EB+Garamond:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
@@ -36,7 +39,7 @@
                     type="range"
                     id="fontSizing"
                     min="0"
-                    max="2"
+                    max="4"
                     step="1"
                     value="1"
                   />
@@ -74,6 +77,16 @@
 
       </main>
 
+      <div id="leaveModal" class="modal hidden">
+          <div class="modal-content">
+              <p>Are you sure you want to leave the session?</p>
+
+              <div class="modal-actions">
+                  <button id="confirmLeaveBtn">Leave</button>
+                  <button id="cancelLeaveBtn">Cancel</button>
+              </div>
+          </div>
+      </div>
     </div>
   <script src="/socket.io/socket.io.js"></script>
   <!-- <script src="script.js" defer></script>   -->

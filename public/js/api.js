@@ -53,9 +53,12 @@ export async function loadTranslations(){
 }
 
 export async function renderVerses(jumpVerse = null) {
-    const res = await fetch(
-        `/book/${state.bookId}/chapter/${state.chapterId}/${state.translationId}`
-    );
+
+if (!state.bookId || !state.chapterId || !state.translationId) return;
+
+    try { 
+    
+    const res = await fetch(`/book/${state.bookId}/chapter/${state.chapterId}/${state.translationId}`); 
 
     const data = await res.json();
 
@@ -74,6 +77,11 @@ export async function renderVerses(jumpVerse = null) {
     if (jumpVerse) {
         jumpToVerse(jumpVerse);
     }
+
+    } catch (err) {
+        console.warn("Fetch failed (likely disconnected):", err);
+    }
+
 }
 
 export async function loadChapter() {

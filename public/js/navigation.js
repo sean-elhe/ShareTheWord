@@ -13,6 +13,7 @@ import {
 import { selectVerse, clearSelection } from "./verse.js";
 
 export async function setNavigation(next, source = "local") {
+    
     const chapterChanged =
         next.bookId !== state.bookId ||
         next.chapterId !== state.chapterId ||
