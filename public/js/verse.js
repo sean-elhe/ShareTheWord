@@ -16,49 +16,62 @@ import {
 
 import { loadChapter } from "./api.js";
 
-export let selectedVerse = null;
+// export let selectedVerse = null;
 
-export function selectVerse(verseNumber, fromRemote = false) {
+// export function selectVerse(verseNumber, fromRemote = false) {
 
-    if (!fromRemote && selectedVerse === verseNumber) {
-        clearSelection();
-        selectedVerse = null;
-        state.verseId = null;
-        return;
-    }
+//     if (!fromRemote && selectedVerse === verseNumber) {
+//         clearSelection();
+//         selectedVerse = null;
+//         state.verseId = null;
+//         return;
+//     }
 
+//     clearSelection();
+
+//     state.verseId = verseNumber;
+
+//     const verse = document.getElementById(`verse-${verseNumber}`);
+//     if (!verse) return;
+
+//     verse.classList.add("selected");
+
+//     document.querySelectorAll(".verse")
+//         .forEach(el => {
+//             if (el !== verse) {
+//                 el.classList.add("dim");
+//             }
+//         });
+
+//     jumpToVerse(verseNumber);
+// }
+
+export function selectVerse(verseNumber) {
     clearSelection();
 
-    selectedVerse = verseNumber;
-    state.verseId = verseNumber;
+    // if (!state.verseId) return;
 
-    const verse = document.getElementById(`verse-${verseNumber}`);
+    state.selectedVerse = verseNumber;
+
+    const verse =
+        document.getElementById(`verse-${state.verseId}`);
+
     if (!verse) return;
 
     verse.classList.add("selected");
 
-    document.querySelectorAll(".verse")
-        .forEach(el => {
-            if (el !== verse) {
-                el.classList.add("dim");
-            }
-        });
+    document.querySelectorAll(".verse").forEach(el => {
+        if (el !== verse) {
+            el.classList.add("dim");
+        }
+    });
 
     jumpToVerse(verseNumber);
-
-    // if (state.isHost) {
-    //     setNavigation();
-    // }
-
-    // if (!fromRemote) {
-    //     setNavigation();
-    // }
-
-    console.log("Selecting verse:", verseNumber, document.getElementById(`verse-${verseNumber}`));
 }
 
 export function clearSelection(){
-    selectedVerse = null;
+    state.selectedVerse = null;
+
     document.querySelectorAll(".verse.selected")
         .forEach(el => el.classList.remove("selected"));
     document.querySelectorAll(".verse.dim")
@@ -76,11 +89,9 @@ export function handleVerseClick(e) {
     state.verseId = verseNumber;
 
     setNavigation({
-        verseId: verseNumber
+        verseId: verseNumber,
+        selectedVerse: verseNumber
     }, "local");
-    // selectVerse(verseNumber);
-    // jumpToVerse(verseNumber);
-    // syncNavigation();
 }
 
 export function applyState() {

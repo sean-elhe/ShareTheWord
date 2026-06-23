@@ -52,38 +52,19 @@ io.on("connection", socket => {
         const session = sessions[data.sessionId];
         if (!session) return;
 
-        // update full state
         session.bookId = data.bookId;
         session.chapterId = data.chapterId;
         session.translationId = data.translationId;
         session.verseId = data.verseId;
 
+        if ("selectedVerse" in data ) {
+            session.selectedVerse = data.selectedVerse;
+        }
+
         io.to(data.sessionId).emit("navigate", {
             ...session,
             source: data.source
         });        
-        // const session = sessions[data.sessionId];
-
-        // if (!session) {
-        //     return;
-        // }
-
-        // if (socket.id !== session.hostId) {
-        //     return;
-        // }
-
-        // session.bookId = data.bookId;
-        // session.chapterId = data.chapterId;
-        // session.verseId = data.verseId;
-        // session.translationId = data.translationId;
-        // session.lastActivity = Date.now();
-
-        // io.to(data.sessionId).emit("navigate", {
-        //     bookId: session.bookId,
-        //     chapterId: session.chapterId,
-        //     verseId: session.verseId,
-        //     translationId: session.translationId
-        // });
     });
 });
 

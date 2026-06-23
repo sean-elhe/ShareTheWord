@@ -1,5 +1,6 @@
 import { state } from "./state.js";
 import { setNavigation } from "./navigation.js";
+import { selectVerse } from "./verse.js";
 
 export const socket = io();
 
@@ -42,8 +43,11 @@ socket.on("navigate", (data) => {
             bookId: data.bookId,
             chapterId: data.chapterId,
             verseId: data.verseId,
+            selectedVerse: data.selectedVerse,
             translationId: data.translationId
         },
         "remote"
     );
+    console.log("RECEIVED NAV:", data);
+
 });

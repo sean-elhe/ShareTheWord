@@ -18,11 +18,20 @@ export async function setNavigation(next, source = "local") {
         next.chapterId !== state.chapterId ||
         next.translationId !== state.translationId;
 
-    // 1. UPDATE STATE
-    state.bookId = next.bookId ?? state.bookId;
-    state.chapterId = next.chapterId ?? state.chapterId;
-    state.translationId = next.translationId ?? state.translationId;
-    state.verseId = next.verseId ?? null;
+    if ("bookId" in next)
+        state.bookId = next.bookId;
+
+    if ("chapterId" in next)
+        state.chapterId = next.chapterId;
+
+    if ("translationId" in next)
+        state.translationId = next.translationId;
+
+    if ("verseId" in next)
+        state.verseId = next.verseId;
+
+    if ("selectedVerse" in next)
+        state.selectedVerse = next.selectedVerse;
 
     // 2. UPDATE UI (chapter/book/translation)
     if (chapterChanged) {
@@ -33,18 +42,26 @@ export async function setNavigation(next, source = "local") {
         chapterSelect.value = state.chapterId;
         translationSelect.value = state.translationId;
 
+        // state.selectedVerse: null;
+
         await loadChapter();
     } else {
         await renderVerses();
     }
 
     // 3. APPLY VERSE SELECTION
-    if (state.verseId) {
-        selectVerse(state.verseId, source === "remote");
+    if (state.selectedVerse) {
+        selectVerse(state.selectedVerse);
     } else {
         clearSelection();
     }
 
+    console.log("OUTGOING NAV:", {
+        bookId: state.bookId,
+        chapterId: state.chapterId,
+        verseId: state.verseId,
+        selectedVerse: state.selectedVerse
+    });
     // 4. EMIT TO SOCKET ONLY IF LOCAL
     if (source === "local" && state.isHost && state.sessionId) {
         socket.emit("navigate", {
@@ -52,8 +69,10 @@ export async function setNavigation(next, source = "local") {
             bookId: state.bookId,
             chapterId: state.chapterId,
             verseId: state.verseId,
+            selectedVerse: state.selectedVerse,
             translationId: state.translationId,
             source: socket.id
         });
     }
+
 }

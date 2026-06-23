@@ -30,50 +30,39 @@ export function initEvents() {
         setNavigation({
             bookId: Number(e.target.value),
             chapterId: 1,
-            verseId: null
+            verseId: 1,
+            selectedVerse: null
         }, "local");
     });
 
     chapterSelect.addEventListener("change", async (e) => {
         setNavigation({
             chapterId: Number(e.target.value),
-            verseId: null
+            verseId: 1,
+            selectedVerse: null
         }, "local");
     });
 
     translationSelect.addEventListener("change", async (e) => {
-        // state.translationId = e.target.value;
-
-        // saveState();
-
-        // await renderVerses();
-        // syncNavigation();
         setNavigation({
             translationId: e.target.value,
-            verseId: null
+            verseId: 1
         }, "local");
     });
 
     nextBtn.addEventListener("click", async () => {
-        // state.chapterId++;
-        // state.verseId = 1;
-
-        // await loadChapter();
         setNavigation({
             chapterId: state.chapterId + 1,
-            verseId: null
+            verseId: 1,
+            selectedVerse: null
         }, "local");
     });
 
     backBtn.addEventListener("click", async () => {
-        // state.chapterId--;
-        // chapterSelect.value = state.chapterId;
-        // saveState();
-
-        // await loadChapter();
         setNavigation({
             chapterId: state.chapterId - 1,
-            verseId: null
+            verseId: 1,
+            selectedVerse: null
         }, "local");
     });
 
@@ -100,15 +89,6 @@ export function initEvents() {
     });
 
     verseSelect.addEventListener("change", () => {
-        // const verseNumber = Number(verseSelect.value);
-        // state.verseId = verseNumber;
-        // selectVerse(verseNumber);
-
-        // // if (state.isHost) {
-        // //     syncNavigation();
-        // // }
-
-        // saveState();
         setNavigation({
             verseId: Number(e.target.value)
         }, "local");

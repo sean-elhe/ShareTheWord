@@ -1,4 +1,5 @@
 import { fontSlider, themeBtn } from "./dom.js";
+import { selectVerse } from "./verse.js";
 
 export const state = {
     bookId: 1,
@@ -11,7 +12,8 @@ export const state = {
     fontSizes: ["1.0rem", "1.5rem", "2.0rem"],
     fontSize: 1,
     inviteLink: null,
-    isReady: false
+    isReady: false,
+    selectedVerse: null
 };
 export const uiFlags = {
     isRemoteScroll: false

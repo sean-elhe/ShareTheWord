@@ -84,4 +84,5 @@ export async function loadChapter() {
 
     await renderVerses();
     saveState();
+    jumpToVerse(state.verseId);
 }
