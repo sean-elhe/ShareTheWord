@@ -51,17 +51,54 @@ export function initEvents() {
         }, "local");
     });
 
+    function getNextChapter(bookId, chapterId, direction) {
+        const currentIndex = state.chapters.findIndex(
+            c => c.book_id === bookId &&
+            c.chapter === chapterId
+        );
+
+        if (currentIndex === -1) return null;
+
+        if (direction === 1) {
+            return state.chapters[currentIndex + 1] || null;
+        } else if (direction === 0) {
+            return state.chapters[currentIndex - 1] || null;
+        }
+    }
+
     nextBtn.addEventListener("click", async () => {
+        let direction = 1;
+
+        const next = getNextChapter(
+            state.bookId,
+            state.chapterId,
+            direction
+        );
+
+        if (!next) return;
+        
         setNavigation({
-            chapterId: state.chapterId + 1,
+            bookId: next.book_id,
+            chapterId: next.chapter,
             verseId: 1,
             selectedVerse: null
         }, "local");
     });
 
     backBtn.addEventListener("click", async () => {
+        let direction = 0;
+
+        const previous = getNextChapter(
+            state.bookId,
+            state.chapterId,
+            direction
+        );
+
+        if (!previous) return;
+
         setNavigation({
-            chapterId: state.chapterId - 1,
+            bookId: previous.book_id,
+            chapterId: previous.chapter,
             verseId: 1,
             selectVerse: null
         }, "local");

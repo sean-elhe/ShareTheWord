@@ -17,6 +17,7 @@ export const state = {
     isHost: false,
     isGuest: false
 };
+
 export const uiFlags = {
     isRemoteScroll: false
 };
