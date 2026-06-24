@@ -1,6 +1,6 @@
 import { state, saveState, applyFontSize, applySessionUI } from "./state.js";
 import { selectVerse, handleVerseClick, clearSelection } from "./verse.js";
-import { renderChapterOptions, renderVerseOptions } from "./render.js";
+import { jumpToVerse, renderChapterOptions, renderVerseOptions } from "./render.js";
 import { loadChapter, loadBooks, loadTranslations, renderVerses } from "./api.js";
 import { setNavigation } from "./navigation.js";
 import { socket } from "./socket.js";
@@ -153,7 +153,7 @@ export function initEvents() {
             state.sessionId = sessionId;
             socket.emit("join-session", sessionId);
 
-            state.inviteLink = `${window.location.origin}?session=${sessionId}`;
+            state.inviteLink = `${location.origin}/link/${sessionId}`;
             console.log(state.inviteLink)
             overlayMenu.classList.add("hidden");
             overlayLink.classList.remove("hidden");

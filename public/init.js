@@ -14,10 +14,6 @@ import {
 import { initEvents } from "./js/events.js";
 import { setNavigation } from "./js/navigation.js";
 
-// const chapterCache = {};
-// const key =
-//     `${state.translation}-${state.bookId}-${state.chapterId}`;
-
 async function init() {
     loadState();
     applyFontSize();

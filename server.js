@@ -1,9 +1,11 @@
+const { Server } = require("socket.io");
+const { nanoid } = require("nanoid");
+
+const db = require("./db");
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
 const crypto = require("crypto");
 const path = require("path");
-const db = require("./db");
 
 const app = express();
 const server = http.createServer(app);
@@ -11,6 +13,11 @@ const io = new Server(server);
 
 const sessions = {};
 const socketSessionMap = new Map();
+
+
+app.use(express.json());
+
+app.use(express.static(path.join(__dirname, "public")));
 
 io.on("connection", socket => {
 
@@ -91,12 +98,8 @@ io.on("connection", socket => {
     });
 });
 
-app.use(express.json());
-
-app.use(express.static(path.join(__dirname, "public")));
-
 app.post("/session", (req, res) => {
-    const sessionId = crypto.randomUUID();
+    const sessionId = nanoid(5);
 
     sessions[sessionId] = {
         bookId: req.body.bookId ?? 1,
@@ -227,6 +230,10 @@ function cleanupSessionIfEmpty(sessionId) {
     }
 }
 
+app.get("/link/:sessionId", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 // 404 fallback
 app.use((req, res) => {
   res.status(404).send("Not found");
@@ -235,3 +242,4 @@ app.use((req, res) => {
 server.listen(3001, () => {
   console.log("Server running on http://localhost:3001");
 });
+

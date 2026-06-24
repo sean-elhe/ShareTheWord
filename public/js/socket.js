@@ -5,14 +5,31 @@ import { selectVerse } from "./verse.js";
 export const socket = io();
 
 socket.on("connect", () => {
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get("session");
+    const sessionId = location.pathname.split("/")[2];
 
     if (sessionId) {
         state.sessionId = sessionId;
         socket.emit("join-session", sessionId);
     }
 });
+
+// socket.on("connect", () => {
+//     // const params = new URLSearchParams(window.location.search);
+//     // const sessionId = params.get("session");
+//     const match = location.pathname.match(/^\/s\/(.+)$/);
+
+//     if (match) {
+//         const sessionId = match[1];
+
+//         state.sessionId = sessionId;
+//         socket.emit("join-session", sessionId);
+//     }
+
+//     // if (sessionId) {
+//     //     state.sessionId = sessionId;
+//     //     socket.emit("join-session", sessionId);
+//     // }
+// });
 
 socket.on("session-state", async (data) => {
     state.sessionId = data.sessionId;
