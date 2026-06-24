@@ -126,9 +126,11 @@ export function initEvents() {
         saveState();
     });
 
-    verseSelect.addEventListener("change", () => {
+    verseSelect.addEventListener("change", async (e) => {
+
         setNavigation({
-            verseId: Number(e.target.value)
+            verseId: Number(e.target.value),
+            selectedVerse: Number(e.target.value)
         }, "local");
     });
 
