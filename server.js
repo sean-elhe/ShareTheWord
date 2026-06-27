@@ -82,13 +82,15 @@ io.on("connection", socket => {
         const session = sessions[data.sessionId];
         if (!session) return;
 
+        session.selectedVerses = session.selectedVerses || [];
+
         session.bookId = data.bookId;
         session.chapterId = data.chapterId;
         session.translationId = data.translationId;
         session.verseId = data.verseId;
 
-        if ("selectedVerse" in data ) {
-            session.selectedVerse = data.selectedVerse;
+        if ("selectedVerses" in data ) {
+            session.selectedVerses = data.selectedVerses;
         }
 
         io.to(data.sessionId).emit("navigate", {

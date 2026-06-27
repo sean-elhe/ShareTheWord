@@ -16,30 +16,19 @@ import {
 
 import { loadChapter } from "./api.js";
 
-export function selectVerse(verseNumber) {
-    clearSelection();
-
-    state.selectedVerse = verseNumber;
-
-    const verse =
-        document.getElementById(`verse-${verseNumber}`);
-
-    if (!verse) return;
-
-    verse.classList.add("selected");
+export function selectVerse() {
+    const hasSelection = state.selectedVerses.size > 0;
 
     document.querySelectorAll(".verse").forEach(el => {
-        if (el !== verse) {
-            el.classList.add("dim");
-        }
-    });
+        const vid = el.id.replace("verse-", "");
+        const selected = state.selectedVerses.has(vid);
 
-    jumpToVerse(verseNumber);
+        el.classList.toggle("selected", selected);
+        el.classList.toggle("dim", hasSelection && !selected);
+    });
 }
 
 export function clearSelection() {
-    state.selectedVerse = null;
-
     document.querySelectorAll(".verse").forEach(el => {
         el.classList.remove("selected");
         el.classList.remove("dim");
@@ -50,22 +39,31 @@ export function handleVerseClick(e) {
     const verse = e.target.closest(".verse");
     if (!verse) return;
 
-    const verseNumber =
-        Number(verse.id.replace("verse-", ""));
+    const verseNumber = Number(verse.id.replace("verse-", ""));
+    const id = String(verseNumber);
 
-    if (state.selectedVerse === verseNumber) {
-        clearSelection();
+    state.verseId = verseNumber;
 
-        setNavigation({
-            selectedVerse: null
-        }, "local");
+    if (state.selectedVerses.has(id)) {
+        state.selectedVerses.clear();
+        // state.anchorVerse = null;
+    } else if (state.selectedVerses.size === 0) {
+        state.selectedVerses.add(id);
+        state.anchorVerse = verseNumber;
+    } else {
+        const start = Math.min(state.anchorVerse, verseNumber);
+        const end = Math.max(state.anchorVerse, verseNumber);
 
-        return;
+        for (let i = start; i <=end; i++) {
+            state.selectedVerses.add(String(i));
+        }
     }
+
+    selectVerse();
 
     setNavigation({
         verseId: verseNumber,
-        selectedVerse: verseNumber
+        selectedVerses: [...state.selectedVerses]
     }, "local");
 }
 

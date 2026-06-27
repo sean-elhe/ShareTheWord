@@ -54,29 +54,30 @@ export async function loadTranslations(){
 
 export async function renderVerses(jumpVerse = null) {
 
-if (!state.bookId || !state.chapterId || !state.translationId) return;
+    if (!state.bookId || !state.chapterId || !state.translationId) return;
 
     try { 
-    
-    const res = await fetch(`/book/${state.bookId}/chapter/${state.chapterId}/${state.translationId}`); 
+        const res = await fetch(`/book/${state.bookId}/chapter/${state.chapterId}/${state.translationId}`); 
+        const data = await res.json();
 
-    const data = await res.json();
+        if (!data.length) return;
 
-    if (!data.length) return;
+        headerBtn.textContent =
+            `${data[0].book} ${data[0].chapter}`;
 
-    headerBtn.textContent =
-        `${data[0].book} ${data[0].chapter}`;
+        verses.innerHTML =
+            data.map(v => `
+                <p class="verse" id="verse-${v.verse}">
+                    <sup>${v.verse}</sup> ${v.text}
+                </p>
+            `).join("");
 
-    verses.innerHTML =
-        data.map(v => `
-            <p class="verse" id="verse-${v.verse}">
-                <sup>${v.verse}</sup> ${v.text}
-            </p>
-        `).join("");
+        // if (jumpVerse) {
+        //     jumpToVerse(jumpVerse);
+        // }
 
-    if (jumpVerse) {
-        jumpToVerse(jumpVerse);
-    }
+        // optional but recommended if you have multi-select
+        // applySelection();
 
     } catch (err) {
         console.warn("Fetch failed (likely disconnected):", err);
@@ -92,5 +93,5 @@ export async function loadChapter() {
 
     await renderVerses();
     saveState();
-    jumpToVerse(state.verseId);
+    // jumpToVerse(state.verseId);
 }

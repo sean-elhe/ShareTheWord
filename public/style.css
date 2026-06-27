@@ -136,6 +136,10 @@ select {
         transform 0.2s ease;
 }
 
+.overlay > * {
+    min-width: 0;
+}
+
 #linkHeader {
     text-align: center;
     margin-bottom: 10px;
@@ -180,17 +184,31 @@ select {
 
 .overlay > :first-child {
     grid-column: span 2;
-    justify-self: center;
-    width: 50%;
+}
+
+#overlayHeader {
+    display: flex;
+    justify-content: flex-end;
 }
 
 #menuClose {
+    justify-self: right;
+    padding: .6rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: .95rem;
+    color: var(--text);
+}
+
+#searchInput {
     padding: .6rem 1rem;
     border-radius: 12px;
     border: 1px solid var(--border);
     background: var(--surface);
     font-size: .95rem;
     color: var(--text);
+    width: 75%;
 }
 
 .overlay > :last-child {

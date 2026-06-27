@@ -22,7 +22,8 @@ import {
     overlay,
     leaveModal,
     confirmLeaveBtn,
-    cancelLeaveBtn
+    cancelLeaveBtn,
+    // searchBar
 } from "./dom.js";
 
 export function initEvents() {
@@ -32,7 +33,7 @@ export function initEvents() {
             bookId: Number(e.target.value),
             chapterId: 1,
             verseId: 1,
-            selectedVerse: null
+            selectedVerses: new Set()
         }, "local");
     });
 
@@ -40,7 +41,13 @@ export function initEvents() {
         setNavigation({
             chapterId: Number(e.target.value),
             verseId: 1,
-            selectedVerse: null
+            selectedVerses: new Set()
+        }, "local");
+    });
+
+    verseSelect.addEventListener("change", async (e) => {
+        setNavigation({
+            verseId: Number(e.target.value)
         }, "local");
     });
 
@@ -81,7 +88,7 @@ export function initEvents() {
             bookId: next.book_id,
             chapterId: next.chapter,
             verseId: 1,
-            selectedVerse: null
+            selectedVerses: new Set()
         }, "local");
     });
 
@@ -124,14 +131,6 @@ export function initEvents() {
         state.fontSize = Number(fontSlider.value);
         applyFontSize();
         saveState();
-    });
-
-    verseSelect.addEventListener("change", async (e) => {
-
-        setNavigation({
-            verseId: Number(e.target.value),
-            selectedVerse: Number(e.target.value)
-        }, "local");
     });
 
     sessionBtn.addEventListener("click", async () => {
@@ -196,4 +195,7 @@ export function initEvents() {
         }
     });
 
+    // searchBar.addEventListener("input", (e) => {
+
+    // })
 }

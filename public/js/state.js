@@ -13,9 +13,10 @@ export const state = {
     fontSize: 1,
     inviteLink: null,
     isReady: false,
-    selectedVerse: null,
     isHost: false,
-    isGuest: false
+    isGuest: false,
+    selectedVerses: new Set(),
+    anchorVerse: null
 };
 
 export const uiFlags = {
